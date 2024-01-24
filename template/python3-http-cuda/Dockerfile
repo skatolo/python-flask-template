@@ -8,6 +8,7 @@ RUN chmod +x /usr/bin/fwatchdog
 ARG ADDITIONAL_PACKAGE
 # Alternatively use ADD https:// (which will not be cached by Docker builder)
 
+ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get -qy update \
     && apt-get -qy install python3-pip python${PYTHON_VERSION} ${ADDITIONAL_PACKAGE} \
     && rm -rf /var/lib/apt/lists/*
