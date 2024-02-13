@@ -1,20 +1,9 @@
-OpenFaaS Python Flask Templates
+OpenFaaS Python Flask CUDA Templates
 =============================================
-
-The Python Flask templates that make use of the incubator project [of-watchdog](https://github.com/openfaas-incubator/of-watchdog).
 
 Templates available in this repository:
 
-- python3-http
-- python3-http-debian (ideal for compiled dependencies like numpy, pandas, pillow)
-
-- python3-flask
-- python3-flask-debian (ideal for compiled dependencies like numpy, pandas, pillow)
-
-- python27-flask (Python 2.7 is deprecated)
-
-Notes:
-- To build and deploy a function for an ARM computer, you'll need to use `faas-cli publish --platforms`
+- python3-http-cuda (for use with NVIDIA container runtime)
 
 ## SSH authentication for private Git repositories and Pip modules
 
@@ -24,7 +13,6 @@ If you need to install Pip modules from private Git repositories, we provide an 
 
 ## Picking your template
 
-The templates named `python*-flask*` are designed as a drop-in replacement for the classic `python3` template, but using the more efficient of-watchdog. The move to use flask as an underlying framework allows for greater control over the HTTP request and response.
 
 Those templates named `python*-http*` are designed to offer full control over the HTTP request and response. Flask is used as an underlying framework.
 
@@ -40,7 +28,7 @@ The current stable version of python is 3.11, you might want to test the next pr
 ```yaml
 functions:
   pgfn:
-    lang: python3-http-debian
+    lang: python3-http-cuda
     handler: ./pgfn
     image: pgfn:latest
     build_args:
@@ -51,7 +39,7 @@ Or pin to a older version while you wait for your dependencies to be updated.
 ```yaml
 functions:
   pgfn:
-    lang: python3-http-debian
+    lang: python3-http-cuda
     handler: ./pgfn
     image: pgfn:latest
     build_args:
@@ -69,17 +57,7 @@ faas-cli build --build-arg PYTHON_VERSION=3.12
 Using template pull with the repository's URL:
 
 ```bash
-faas-cli template pull https://github.com/openfaas-incubator/python-flask-template
-```
-
-Using the template store:
-
-```bash
-# Either command downloads both templates
-faas-cli template store pull python3-http
-
-# Or
-faas-cli template store pull python3-flask
+faas-cli template pull  https://github.com/skatolo/python-flask-template
 ```
 
 Using your `stack.yml` file:
@@ -87,17 +65,18 @@ Using your `stack.yml` file:
 ```yaml
 configuration:
     templates:
-        - name: python3-http
+        - name: python3-http-cuda
+          source:  https://github.com/skatolo/python-flask-template
 ```
 
-# Using the python3-http templates
+# Using the python3-http-cuda templates
 
 Create a new function
 
 ```
 export OPENFAAS_PREFIX=alexellis2
 export FN="tester"
-faas-cli new --lang python3-http $FN
+faas-cli new --lang python3-http-cuda $FN
 ```
 
 Build, push, and deploy
@@ -246,7 +225,7 @@ provider:
   gateway: http://127.0.0.1:8080
 functions:
   pgfn:
-    lang: python3-http-debian
+    lang: python3-http-cuda
     handler: ./pgfn
     image: pgfn:latest
     build_options:
@@ -309,77 +288,6 @@ def handle(event, context):
 ```
 
 Always read the secret from an OpenFaaS secret at `/var/openfaas/secrets/secret-name`. The use of environment variables is an anti-pattern and will be visible via the OpenFaaS API.
-
-# Using the python3-flask template
-
-Create a new function
-
-```
-export OPENFAAS_PREFIX=alexellis2
-export FN="tester"
-faas-cli new --lang python3-flask $FN
-```
-
-Build, push, and deploy
-
-```
-faas-cli up -f $FN.yml
-```
-
-Test the new function
-
-```
-echo -n content | faas-cli invoke $FN
-```
-
-## Example of returning a string
-
-```python
-def handle(req):
-    """handle a request to the function
-    Args:
-        req (str): request body
-    """
-
-    return "Hi" + str(req)
-```
-
-## Example of returning a custom HTTP code
-
-```python
-def handle(req):
-    return "request accepted", 201
-```
-
-## Example of returning a custom HTTP code and content-type
-
-```python
-def handle(req):
-    return "request accepted", 201, {"Content-Type":"binary/octet-stream"}
-```
-
-## Example of accepting raw bytes in the request
-
-Update stack.yml:
-
-```yaml
-    environment:
-      RAW_BODY: True
-```
-
-> Note: the value for `RAW_BODY` is case-sensitive.
-
-```python
-def handle(req):
-    """handle a request to the function
-    Args:
-        req (str): request body
-    """
-
-    # req is bytes, so an input of "hello" returns i.e. b'hello'
-    return str(req)
-```
-
 
 ## Testing
 The `python3` templates will run `pytest` using `tox` during the `faas-cli build`. There are several options for controlling this.
